@@ -1,16 +1,17 @@
 use crate::pieces::*;
 
 #[derive(Clone, Copy, Debug)]
-enum Tile {
+pub enum Tile {
     Empty,
     Occupied(Color, Piece),
 }
-struct Board {
-    tiles: [[Tile; 8]; 8],
+#[derive(Clone, Copy, Debug)]
+pub struct Board {
+    pub tiles: [[Tile; 8]; 8],
 }
 
 impl Board {
-    fn new() -> Self {
+    pub fn new() -> Self {
         // Create Start configuration
         let mut tiles = [[Tile::Empty; 8]; 8];
         let white_pawns = [Tile::Occupied(Color::White, Piece::Pawn); 8];
