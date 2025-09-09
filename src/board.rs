@@ -1,6 +1,6 @@
 use crate::pieces::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 enum Tile {
     Empty,
     Occupied(Color, Piece),
@@ -38,5 +38,20 @@ impl Board {
         (tiles[0], tiles[1], tiles[7], tiles[6]) =
             (black_back_rank, black_pawns, white_back_rank, white_pawns);
         Board { tiles }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn print_tiles() {
+        let board = Board::new();
+        for i_1 in 0..8 {
+            for i_2 in 0..8 {
+                println!("{:?}", board.tiles[i_1][i_2]);
+            }
+        }
     }
 }
