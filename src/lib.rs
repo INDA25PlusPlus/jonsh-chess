@@ -2,6 +2,8 @@ pub mod board;
 pub mod movement;
 pub mod pieces;
 use std::io;
+
+use crate::board::Board;
 pub fn input() -> (usize, usize) {
     let mut x = String::new(); //create x variable
     let mut y = String::new(); //create y variable
@@ -11,5 +13,5 @@ pub fn input() -> (usize, usize) {
     io::stdin().read_line(&mut y).unwrap(); //read input from terminal
     let y: usize = y.trim().parse().unwrap(); //convert input to int
     let y: usize = y - 1; // -1 since index starts at 0
-    return (x as usize, y); //return both values as a tuple
+    return (y, x as usize); //return both values as a tuple
 }
