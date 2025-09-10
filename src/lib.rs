@@ -10,5 +10,6 @@ pub fn input() -> (usize, usize) {
     let x: u32 = x.to_digit(18).unwrap() - 10; //convert char to int
     io::stdin().read_line(&mut y).unwrap(); //read input from terminal
     let y: usize = y.trim().parse().unwrap(); //convert input to int
+    let y: usize = y - 1; // -1 since index starts at 0
     return (x as usize, y); //return both values as a tuple
 }
