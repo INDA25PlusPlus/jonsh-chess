@@ -1,5 +1,6 @@
 pub mod board;
 pub mod movement;
+pub mod new_ide;
 pub mod pieces;
 use std::io;
 pub fn input() -> (usize, usize) {
