@@ -3,14 +3,13 @@ use crate::pieces::{Color, Piece};
 use std::io;
 
 impl Board {
-    //Get Piece
-    pub fn get_piece(&self, piece: (usize, usize)) -> Tile {
-        let tile = self.tiles[piece.0][piece.1];
-        return tile;
+    pub fn move_piece(mut self, from_x: usize, from_y: usize, to_x: usize, to_y: usize) -> Self {
+        // rudimentary movement function 🥳
+        let curr_piece = self.tiles[from_x][from_y]; // get selected piece info
+        self.tiles[to_x][to_y] = curr_piece; // move piece to new place
+        self.tiles[from_x][from_y] = Tile::Empty; // delete last remaining instance of the piece
+        return self; //BOOOOOOOOOOOOOOMMMM, EZ win, WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW 😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎
     }
-    // pub fn move_piece(&mut self, from: (usize, usize), to: (usize, usize)) {
-    //     if self.get_
-    // }
 }
 
 #[cfg(test)]
@@ -21,21 +20,22 @@ mod tests {
     #[test]
     fn print_piece() {
         let mut board = Board::new();
-        let (f_row, f_col) = input();
-        if let Tile::Occupied(_, piece) = board.tiles[f_row][f_col] {
+        let (from_x, from_y) = input();
+        if let Tile::Occupied(_, piece) = board.tiles[from_x][from_y] {
             println!("{:?}", piece);
         }
     }
     #[test]
-    fn test_get_piece() {
+    fn test_move_piece() {
         let mut board = Board::new();
-        let mut f_row = String::new();
-        let mut f_col = String::new();
-        io::stdin().read_line(&mut f_row).unwrap();
-        let f_row: usize = f_row.trim().parse().unwrap();
-        io::stdin().read_line(&mut f_col).unwrap();
-        let f_col: usize = f_col.trim().parse().unwrap();
-        let tile = board.get_piece((f_row, f_col));
-        println!("{:?}", tile);
+        let (from_x, from_y) = input();
+        let (to_x, to_y) = input();
+        let board = board.move_piece(from_x, from_y, to_x, to_y);
+        Board::print_board(board);
+    }
+    #[test]
+    fn test_input() {
+        let (x, y) = input();
+        println!("{:?}", (x, y));
     }
 }
