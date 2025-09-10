@@ -40,6 +40,11 @@ impl Board {
             (black_back_rank, black_pawns, white_back_rank, white_pawns);
         Board { tiles }
     }
+    pub fn print_board(self) {
+        for i in (0..8) {
+            println!("{:?}", self.tiles[i]);
+        }
+    }
 }
 
 #[cfg(test)]
