@@ -11,37 +11,37 @@ impl Board {
         to_y: usize,
     ) -> Self {
         // rudimentary movement function 🥳
-        let curr_piece = self.tiles[from_x][from_y]; // get selected piece info
-        self.tiles[to_x][to_y] = curr_piece; // move piece to new place
-        self.tiles[from_x][from_y] = Tile::Empty; // delete last remaining instance of the piece
+        let curr_piece = self.tiles[from_y][from_x]; // get selected piece info
+        self.tiles[to_y][to_x] = curr_piece; // move piece to new place
+        self.tiles[from_y][from_x] = Tile::Empty; // delete last remaining instance of the piece
         return self; //BOOOOOOOOOOOOOOMMMM, EZ win, WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW 😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎😎
     }
     pub fn move_piece(mut self, from_x: usize, from_y: usize, to_x: usize, to_y: usize) -> Self {
-        let selected_piece = self.tiles[from_x][from_y];
+        let selected_piece = self.tiles[from_y][from_x];
         if let Tile::Occupied(_, Piece::Pawn) = selected_piece {
             if from_x == to_x {
                 if let Tile::Occupied(Color::Black, _) = selected_piece {
                     if from_y == 1 {
                         if to_y - from_y == 1 || to_y - from_y == 2 {
-                            self.tiles[to_x][to_y] = selected_piece;
-                            self.tiles[from_x][from_y] = Tile::Empty;
+                            self.tiles[to_y][to_x] = selected_piece;
+                            self.tiles[from_y][from_x] = Tile::Empty;
                         }
                     } else {
                         if to_y - from_y == 1 {
-                            self.tiles[to_x][to_y] = selected_piece;
-                            self.tiles[from_x][from_y] = Tile::Empty;
+                            self.tiles[to_y][to_x] = selected_piece;
+                            self.tiles[from_y][from_x] = Tile::Empty;
                         }
                     }
                 } else {
                     if from_y == 6 {
                         if from_y - to_y == 1 || from_y - to_y == 2 {
-                            self.tiles[to_x][to_y] = selected_piece;
-                            self.tiles[from_x][from_y] = Tile::Empty;
+                            self.tiles[to_y][to_x] = selected_piece;
+                            self.tiles[from_y][from_x] = Tile::Empty;
                         }
                     } else {
                         if from_y - to_y == 1 {
-                            self.tiles[to_x][to_y] = selected_piece;
-                            self.tiles[from_x][from_y] = Tile::Empty;
+                            self.tiles[to_y][to_x] = selected_piece;
+                            self.tiles[from_y][from_x] = Tile::Empty;
                         }
                     }
                 }
@@ -49,8 +49,8 @@ impl Board {
         } else if let Tile::Empty = selected_piece {
             unimplemented!("Fuck you");
         } else {
-            self.tiles[to_x][to_y] = selected_piece;
-            self.tiles[from_x][from_y] = Tile::Empty;
+            self.tiles[to_y][to_x] = selected_piece;
+            self.tiles[from_y][from_x] = Tile::Empty;
         }
         return self;
     }
@@ -65,7 +65,7 @@ mod tests {
     fn print_piece() {
         let board = Board::new();
         let (from_x, from_y) = input();
-        if let Tile::Occupied(_, piece) = board.tiles[from_x][from_y] {
+        if let Tile::Occupied(_, piece) = board.tiles[from_y][from_x] {
             println!("{:?}", piece);
         }
     }
