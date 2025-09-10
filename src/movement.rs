@@ -3,29 +3,39 @@ use crate::pieces::{Color, Piece};
 use std::io;
 
 impl Board {
-    pub fn move_piece(&mut self) {
-        let mut moves = String::new();
-        io::stdin().read_line(&mut moves).unwrap();
-        let moves: Vec<usize> = moves
-            .trim()
-            .split(" ")
-            .map(|num| num.parse().unwrap())
-            .collect();
-        let f_row: usize = moves[0];
-        let f_col: usize = moves[1];
-        let t_row: usize = moves[2];
-        let t_col: usize = moves[3];
-        let get_piece = self.tiles[f_row][f_col];
-        println!("{:?}", get_piece);
+    //Get Piece
+    pub fn get_piece(&self, piece: (usize, usize)) -> Tile {
+        let tile = self.tiles[piece.0][piece.1];
+        return tile;
     }
+    // pub fn move_piece(&mut self, from: (usize, usize), to: (usize, usize)) {
+    //     if self.get_
+    // }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::input;
+
     use super::*;
     #[test]
     fn print_piece() {
         let mut board = Board::new();
-        board.move_piece();
+        let (f_row, f_col) = input();
+        if let Tile::Occupied(_, piece) = board.tiles[f_row][f_col] {
+            println!("{:?}", piece);
+        }
+    }
+    #[test]
+    fn test_get_piece() {
+        let mut board = Board::new();
+        let mut f_row = String::new();
+        let mut f_col = String::new();
+        io::stdin().read_line(&mut f_row).unwrap();
+        let f_row: usize = f_row.trim().parse().unwrap();
+        io::stdin().read_line(&mut f_col).unwrap();
+        let f_col: usize = f_col.trim().parse().unwrap();
+        let tile = board.get_piece((f_row, f_col));
+        println!("{:?}", tile);
     }
 }
