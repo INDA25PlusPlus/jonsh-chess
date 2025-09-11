@@ -1,3 +1,0 @@
-// Pieces
-//White: ♙ ♘ ♗ ♖ ♕ ♔
-//Black: ♟ ♞ ♝ ♜ ♛ ♚
