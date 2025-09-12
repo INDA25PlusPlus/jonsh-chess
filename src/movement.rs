@@ -48,51 +48,39 @@ impl Board {
                 }
             }
         } else if let Tile::Occupied(_, Piece::Knight) = selected_piece {
-            if (from_x as isize - to_x as isize).abs() == 1
-                && (from_y as isize - to_y as isize).abs() == 2
-            {
+            if from_x.abs_diff(to_x) == 1 && from_y.abs_diff(to_y) == 2 {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
-            } else if (from_x as isize - to_x as isize).abs() == 2
-                && (from_y as isize - to_y as isize).abs() == 1
-            {
+            } else if from_x.abs_diff(to_x) == 2 && from_y.abs_diff(to_y) == 1 {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
             }
         } else if let Tile::Occupied(_, Piece::Bishop) = selected_piece {
-            if (from_x as isize - to_x as isize).abs() == (from_y as isize - to_y as isize).abs() {
+            if from_x.abs_diff(to_x) == from_y.abs_diff(to_y) {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
             }
         } else if let Tile::Occupied(_, Piece::Rook) = selected_piece {
-            if (from_x as isize - to_x as isize) != 0 && (from_y as isize - to_y as isize) == 0 {
+            if from_x.abs_diff(to_x) != 0 && from_y.abs_diff(to_y) == 0 {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
-            } else if (from_x as isize - to_x as isize) == 0
-                && (from_y as isize - to_y as isize) != 0
-            {
+            } else if from_x.abs_diff(to_x) == 0 && from_y.abs_diff(to_y) != 0 {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
             }
         } else if let Tile::Occupied(_, Piece::Queen) = selected_piece {
-            if (from_x as isize - to_x as isize) != 0 && (from_y as isize - to_y as isize) == 0 {
+            if from_x.abs_diff(to_x) != 0 && from_y.abs_diff(to_y) == 0 {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
-            } else if (from_x as isize - to_x as isize) == 0
-                && (from_y as isize - to_y as isize) != 0
-            {
+            } else if from_x.abs_diff(to_x) == 0 && from_y.abs_diff(to_y) != 0 {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
-            } else if (from_x as isize - to_x as isize).abs()
-                == (from_y as isize - to_y as isize).abs()
-            {
+            } else if from_x.abs_diff(to_x) == from_y.abs_diff(to_y) {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
             }
         } else if let Tile::Occupied(_, Piece::King) = selected_piece {
-            if (from_x as isize - to_x as isize).abs() <= 1
-                && (from_y as isize - to_y as isize).abs() <= 1
-            {
+            if from_x.abs_diff(to_x) <= 1 && from_y.abs_diff(to_y) <= 1 {
                 self.tiles[to_y][to_x] = selected_piece;
                 self.tiles[from_y][from_x] = Tile::Empty;
             }
@@ -102,13 +90,77 @@ impl Board {
         }
         return self;
     }
+    pub fn valid_moves(self, x: usize, y: usize) -> Vec<(usize, usize)> {
+        let selected_piece = self.tiles[y][x];
+        let mut valid_moves: Vec<(usize, usize)> = Vec::new();
+
+        //Pawn
+        if let Tile::Occupied(_, Piece::Pawn) = selected_piece {
+            //##################################################################################
+            //Black
+            if let Tile::Occupied(Color::Black, _) = selected_piece {
+                if let Tile::Empty = self.tiles[y + 1][x] {
+                    if let Tile::Empty = self.tiles[y + 2][x]
+                        && y == 1
+                    {
+                        valid_moves = vec![(x, y + 1), (x, y + 2)];
+                    } else {
+                        valid_moves = vec![(x, y + 1)];
+                    }
+                }
+            //##################################################################################
+            //White
+            } else if let Tile::Occupied(Color::White, _) = selected_piece {
+                if let Tile::Empty = self.tiles[y - 1][x] {
+                    if let Tile::Empty = self.tiles[y - 2][x] {
+                        valid_moves = vec![(x, y - 1), (x, y - 2)];
+                    } else {
+                        valid_moves = vec![(x, y - 1)];
+                    }
+                }
+            }
+        }
+        //##################################################################################
+        //Knight
+        else if let Tile::Occupied(_, Piece::Knight) = selected_piece {
+            for i_1 in -2isize..=2isize {
+                for i_2 in -2isize..=2isize {
+                    if let Tile::Empty =
+                        self.tiles[(x as isize + i_1) as usize][(y as isize + i_2) as usize]
+                        && ((i_1.abs() == 1 && i_2.abs() == 2)
+                            || (i_1.abs() == 2 && i_2.abs() == 1))
+                    {
+                        valid_moves.push(((x as isize + i_1) as usize, (y as isize + i_2) as usize))
+                    }
+                }
+            }
+        }
+        //##################################################################################
+        //Bishop
+        else if let Tile::Occupied(_, Piece::Bishop) = selected_piece {
+            for i_1 in -8isize..=8isize {
+                todo!()
+            }
+        }
+        return valid_moves;
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::usize;
+
     use crate::input;
 
     use super::*;
+    #[test]
+    fn test_move_time() {
+        let board = Board::new();
+        let (from_x, from_y, to_x, to_y): (usize, usize, usize, usize) = (1usize, 7, 2, 5);
+        let board = board.move_piece(from_x, from_y, to_x, to_y);
+        Board::print_board(board);
+    }
+
     #[test]
     fn print_piece() {
         let board = Board::new();
