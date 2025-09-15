@@ -103,19 +103,21 @@ impl Board {
                     if let Tile::Empty = self.tiles[y + 2][x]
                         && y == 1
                     {
-                        valid_moves = vec![(x, y + 1), (x, y + 2)];
+                        valid_moves = vec![(y + 1, x), (y + 2, x)];
                     } else {
-                        valid_moves = vec![(x, y + 1)];
+                        valid_moves = vec![(y + 1, x)];
                     }
                 }
             //##################################################################################
             //White
             } else if let Tile::Occupied(Color::White, _) = selected_piece {
                 if let Tile::Empty = self.tiles[y - 1][x] {
-                    if let Tile::Empty = self.tiles[y - 2][x] {
-                        valid_moves = vec![(x, y - 1), (x, y - 2)];
+                    if let Tile::Empty = self.tiles[y - 2][x]
+                        && y == 6
+                    {
+                        valid_moves = vec![(y - 1, x), (y - 2, x)];
                     } else {
-                        valid_moves = vec![(x, y - 1)];
+                        valid_moves.push((y - 1, x));
                     }
                 }
             }
@@ -126,11 +128,11 @@ impl Board {
             for i_1 in -2isize..=2isize {
                 for i_2 in -2isize..=2isize {
                     if let Tile::Empty =
-                        self.tiles[(x as isize + i_1) as usize][(y as isize + i_2) as usize]
+                        self.tiles[(y as isize + i_2) as usize][(x as isize + i_1) as usize]
                         && ((i_1.abs() == 1 && i_2.abs() == 2)
                             || (i_1.abs() == 2 && i_2.abs() == 1))
                     {
-                        valid_moves.push(((x as isize + i_1) as usize, (y as isize + i_2) as usize))
+                        valid_moves.push(((y as isize + i_2) as usize, (x as isize + i_1) as usize))
                     }
                 }
             }
@@ -138,9 +140,162 @@ impl Board {
         //##################################################################################
         //Bishop
         else if let Tile::Occupied(_, Piece::Bishop) = selected_piece {
-            for i_1 in -8isize..=8isize {
-                todo!()
+            //Diagonal Down-Right
+            for i_1 in 1isize..=(7 - y).min(7 - x) as isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize + i_1) as usize][(x as isize + i_1) as usize]
+                {
+                    valid_moves.push(((y as isize + i_1) as usize, (x as isize + i_1) as usize));
+                } else {
+                    break;
+                }
             }
+            //Diagonal Down-Left
+            for i_2 in 1isize..=(7 - y).min(x) as isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize + i_2) as usize][(x as isize - i_2) as usize]
+                {
+                    valid_moves.push(((y as isize + i_2) as usize, (x as isize - i_2) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Diagonal Upp-Right
+            for i_3 in 1isize..=(y).min(7 - x) as isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize - i_3) as usize][(x as isize + i_3) as usize]
+                {
+                    valid_moves.push(((y as isize - i_3) as usize, (x as isize + i_3) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Diagonal Upp-Left
+            for i_4 in 1isize..=y.min(x) as isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize - i_4) as usize][(x as isize - i_4) as usize]
+                {
+                    valid_moves.push(((y as isize - i_4) as usize, (x as isize - i_4) as usize));
+                } else {
+                    break;
+                }
+            }
+        }
+        //##################################################################################
+        //Rook
+        else if let Tile::Occupied(_, Piece::Rook) = selected_piece {
+            //Right
+            for i_1 in 1isize..=8 - x as isize {
+                if let Tile::Empty = self.tiles[y][(x as isize + i_1) as usize] {
+                    valid_moves.push((y, (x as isize + i_1) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Left
+            for i_2 in 1isize..=x as isize {
+                if let Tile::Empty = self.tiles[y][(x as isize - i_2) as usize] {
+                    valid_moves.push((y, (x as isize - i_2) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Down
+            for i_3 in 1isize..=8 - y as isize {
+                if let Tile::Empty = self.tiles[(y as isize + i_3) as usize][x] {
+                    valid_moves.push(((y as isize + i_3) as usize, x));
+                } else {
+                    break;
+                }
+            }
+            //Upp
+            for i_4 in 1isize..=y as isize {
+                if let Tile::Empty = self.tiles[(y as isize - i_4) as usize][x] {
+                    valid_moves.push(((y as isize - i_4) as usize, x));
+                } else {
+                    break;
+                }
+            }
+        }
+        //##################################################################################
+        //Queen
+        else if let Tile::Occupied(_, Piece::Queen) = selected_piece {
+            //Diagonal Down-Right
+            for i_1 in 1isize..=8isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize + i_1) as usize][(x as isize + i_1) as usize]
+                {
+                    valid_moves.push(((y as isize + i_1) as usize, (x as isize + i_1) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Diagonal Down-Left
+            for i_2 in 1isize..=8isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize + i_2) as usize][(x as isize - i_2) as usize]
+                {
+                    valid_moves.push(((y as isize + i_2) as usize, (x as isize - i_2) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Diagonal Upp-Right
+            for i_3 in 1isize..=8isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize - i_3) as usize][(x as isize + i_3) as usize]
+                {
+                    valid_moves.push(((y as isize - i_3) as usize, (x as isize + i_3) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Diagonal Upp-Left
+            for i_4 in 1isize..=8isize {
+                if let Tile::Empty =
+                    self.tiles[(y as isize - i_4) as usize][(x as isize - i_4) as usize]
+                {
+                    valid_moves.push(((y as isize - i_4) as usize, (x as isize - i_4) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Right
+            for i_5 in 1isize..=8isize {
+                if let Tile::Empty = self.tiles[y][(x as isize + i_5) as usize] {
+                    valid_moves.push((y, (x as isize + i_5) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Left
+            for i_5 in 1isize..=8isize {
+                if let Tile::Empty = self.tiles[y][(x as isize - i_5) as usize] {
+                    valid_moves.push((y, (x as isize - i_5) as usize));
+                } else {
+                    break;
+                }
+            }
+            //Down
+            for i_6 in 1isize..=8isize {
+                if let Tile::Empty = self.tiles[(y as isize + i_6) as usize][x] {
+                    valid_moves.push(((y as isize + i_6) as usize, x));
+                } else {
+                    break;
+                }
+            }
+            //Upp
+            for i_7 in 1isize..=8isize {
+                if let Tile::Empty = self.tiles[(y as isize - i_7) as usize][x] {
+                    valid_moves.push(((y as isize - i_7) as usize, x));
+                } else {
+                    break;
+                }
+            }
+        }
+        //##################################################################################
+        //King
+        else if let Tile::Occupied(_, Piece::King) = selected_piece {
         }
         return valid_moves;
     }
@@ -193,5 +348,13 @@ mod tests {
     #[test]
     fn testing() {
         println!("♔");
+    }
+    #[test]
+    fn test_valid_moves() {
+        let mut board = Board::new();
+        let (x, y) = input();
+        board.tiles[6][0] = Tile::Empty;
+        println!("{:?}", board.valid_moves(x, y));
+        Board::print_board(board);
     }
 }
