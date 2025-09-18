@@ -4,17 +4,48 @@ use crate::pieces::{Color, Piece};
 impl Board {
     pub fn move_piece(&mut self, fx: usize, fy: usize, tx: usize, ty: usize) {
         let selected_piece = self.tiles[fy][fx];
-        if let Tile::Occupied(color, _) = self.tiles[fy][fx]
+        if let Tile::Occupied(color, piece) = self.tiles[fy][fx]
             && color == self.turn
         {
             if self.legal_moves(fx, fy).contains(&(tx, ty)) {
                 self.tiles[ty][tx] = selected_piece;
                 self.tiles[fy][fx] = Tile::Empty;
+
+                if let Tile::Occupied(color, Piece::Pawn) = selected_piece {
+                    if let Some((ex, ey)) = self.en_passant_target {
+                        if (tx, ty) == (ex, ey) {
+                            if color == Color::White {
+                                self.tiles[ty + 1][tx] = Tile::Empty;
+                            } else {
+                                self.tiles[ty - 1][tx] = Tile::Empty;
+                            }
+                        }
+                    }
+                }
+                if let Piece::Pawn = piece {
+                    if color == Color::White && fy == 6 && ty == 4 {
+                        self.en_passant_target = Some((fx, 5));
+                    } else if color == Color::Black && fy == 1 && ty == 3 {
+                        self.en_passant_target = Some((fx, 2));
+                    } else {
+                        self.en_passant_target = None;
+                    }
+                } else {
+                    self.en_passant_target = None;
+                }
+
+                if let Piece::Pawn = piece
+                    && (ty == 0 || ty == 7)
+                {
+                    self.tiles[ty][tx] = Tile::Occupied(color, Piece::Queen);
+                }
+
                 if self.turn == Color::White {
                     self.turn = Color::Black;
                 } else {
                     self.turn = Color::White;
                 }
+
                 if let Tile::Occupied(color, Piece::King) = selected_piece {
                     if color == Color::White {
                         self.white_king_pos = (tx, ty);
@@ -25,8 +56,6 @@ impl Board {
             }
         }
     }
-
-    //Get Color of Piece. Return True for white and False for black.
     pub fn get_color(&self, x: usize, y: usize) -> bool {
         if let Tile::Occupied(Color::White, _) = self.tiles[y][x] {
             return true;
@@ -84,21 +113,32 @@ impl Board {
             if Board::in_bounds(x as isize, y as isize + i) {
                 if let Tile::Empty = self.tiles[(y as isize + i) as usize][x] {
                     valid_moves.push((x, (y as isize + i) as usize));
-                    if let Tile::Empty = self.tiles[(y as isize + i * 2) as usize][x]
-                        && ((y == 6 && color == Color::White) || (y == 1 && color == Color::Black))
-                    {
-                        valid_moves.push((x, (y as isize + 2 * i) as usize));
+                    if Board::in_bounds(x as isize, y as isize + i * 2) {
+                        if let Tile::Empty = self.tiles[(y as isize + i * 2) as usize][x]
+                            && ((y == 6 && color == Color::White)
+                                || (y == 1 && color == Color::Black))
+                        {
+                            valid_moves.push((x, (y as isize + 2 * i) as usize));
+                        }
                     }
                 }
             }
             for k in [-1, 1] {
-                if Board::in_bounds(x as isize + k, y as isize + i) {
-                    if let Tile::Occupied(color, _) =
-                        self.tiles[(y as isize + i) as usize][(x as isize + k) as usize]
+                let nx = x as isize + k;
+                let ny = y as isize + i;
+                if Board::in_bounds(nx, ny) {
+                    if let Tile::Occupied(color, _) = self.tiles[(ny) as usize][(nx) as usize]
                         && color != selected_piece.color().unwrap()
                     {
-                        valid_moves.push(((x as isize + k) as usize, (y as isize + i) as usize));
+                        valid_moves.push(((nx) as usize, (ny) as usize));
                     }
+                }
+            }
+            if let Some((ex, ey)) = self.en_passant_target {
+                if (y as isize + i) as usize == ey
+                    && ((x as isize - 1) as usize == ex || (x as isize + 1) as usize == ex)
+                {
+                    valid_moves.push((ex, ey));
                 }
             }
         }
@@ -233,7 +273,6 @@ impl Board {
         }
         return valid_moves;
     }
-    //Is king in check
     pub fn is_check(&self) -> (bool, bool) {
         let mut value = (false, false);
         for iy in 0..8 {
