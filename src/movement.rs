@@ -2,82 +2,23 @@ use crate::board::{Board, Tile};
 use crate::pieces::{Color, Piece};
 
 impl Board {
-    pub fn move_piece(mut self, from_x: usize, from_y: usize, to_x: usize, to_y: usize) -> Self {
-        let selected_piece = self.tiles[from_y][from_x];
-
-        if let Tile::Occupied(_, Piece::Pawn) = selected_piece // rudimentary pawn movement
-            && from_x == to_x
+    pub fn new_move_piece(mut self, fx: usize, fy: usize, tx: usize, ty: usize) -> Self {
+        let selected_piece = self.tiles[fy][fx];
+        if let Tile::Occupied(color, _) = self.tiles[fy][fx]
+            && color == self.turn
         {
-            if let Tile::Occupied(Color::Black, _) = selected_piece {
-                if from_y == 1 {
-                    if to_y - from_y == 1 || to_y - from_y == 2 {
-                        self.tiles[to_y][to_x] = selected_piece;
-                        self.tiles[from_y][from_x] = Tile::Empty;
-                    }
+            if self.valid_moves(fx, fy).contains(&(tx, ty)) {
+                self.tiles[ty][tx] = selected_piece;
+                self.tiles[fy][fx] = Tile::Empty;
+                if self.turn == Color::White {
+                    self.turn = Color::Black;
                 } else {
-                    if to_y - from_y == 1 {
-                        self.tiles[to_y][to_x] = selected_piece;
-                        self.tiles[from_y][from_x] = Tile::Empty;
-                    }
-                }
-            } else {
-                if from_y == 6 {
-                    if from_y - to_y == 1 || from_y - to_y == 2 {
-                        self.tiles[to_y][to_x] = selected_piece;
-                        self.tiles[from_y][from_x] = Tile::Empty;
-                    }
-                } else {
-                    if from_y - to_y == 1 {
-                        self.tiles[to_y][to_x] = selected_piece;
-                        self.tiles[from_y][from_x] = Tile::Empty;
-                    }
+                    self.turn = Color::White;
                 }
             }
-        } else if let Tile::Occupied(_, Piece::Knight) = selected_piece {
-            if from_x.abs_diff(to_x) == 1 && from_y.abs_diff(to_y) == 2 {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            } else if from_x.abs_diff(to_x) == 2 && from_y.abs_diff(to_y) == 1 {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            }
-        } else if let Tile::Occupied(_, Piece::Bishop) = selected_piece {
-            if from_x.abs_diff(to_x) == from_y.abs_diff(to_y) {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            }
-        } else if let Tile::Occupied(_, Piece::Rook) = selected_piece {
-            if from_x.abs_diff(to_x) != 0 && from_y.abs_diff(to_y) == 0 {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            } else if from_x.abs_diff(to_x) == 0 && from_y.abs_diff(to_y) != 0 {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            }
-        } else if let Tile::Occupied(_, Piece::Queen) = selected_piece {
-            if from_x.abs_diff(to_x) != 0 && from_y.abs_diff(to_y) == 0 {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            } else if from_x.abs_diff(to_x) == 0 && from_y.abs_diff(to_y) != 0 {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            } else if from_x.abs_diff(to_x) == from_y.abs_diff(to_y) {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            }
-        } else if let Tile::Occupied(_, Piece::King) = selected_piece {
-            if from_x.abs_diff(to_x) <= 1 && from_y.abs_diff(to_y) <= 1 {
-                self.tiles[to_y][to_x] = selected_piece;
-                self.tiles[from_y][from_x] = Tile::Empty;
-            }
-        } else {
-            self.tiles[to_y][to_x] = selected_piece;
-            self.tiles[from_y][from_x] = Tile::Empty;
         }
         return self;
     }
-
-    //         pub fn new_move_piece(self, fx: usize, fy: usize, tx: usize, ty: usize) -> Self {}
 
     //Get Color of Piece. Return True for white and False for black.
     pub fn get_color(self, x: usize, y: usize) -> bool {
@@ -308,19 +249,9 @@ impl Board {
 
 #[cfg(test)]
 mod tests {
-    use std::usize;
-
     use crate::input;
 
     use super::*;
-    #[test]
-    fn test_move_time() {
-        let board = Board::new();
-        let (from_x, from_y, to_x, to_y): (usize, usize, usize, usize) = (1usize, 7, 2, 5);
-        let board = board.move_piece(from_x, from_y, to_x, to_y);
-        Board::print_board(board);
-    }
-
     #[test]
     fn print_piece() {
         let board = Board::new();
@@ -333,14 +264,6 @@ mod tests {
     fn test_input() {
         let (x, y) = input();
         println!("{:?}", (x, y));
-    }
-    #[test]
-    fn test_move_piece() {
-        let board = Board::new();
-        let (from_x, from_y) = input();
-        let (to_x, to_y) = input();
-        let board = board.move_piece(from_x, from_y, to_x, to_y);
-        Board::print_board(board);
     }
     #[test]
     fn test_valid_moves() {
@@ -362,20 +285,6 @@ mod tests {
         }
     }
     #[test]
-    fn test_get_check() {
-        let mut board = Board::new();
-        // board = board.move_piece(3, 6, 3, 4);
-        // board = board.move_piece(4, 1, 4, 3);
-        // board = board.move_piece(6, 7, 5, 5);
-        // board = board.move_piece(5, 0, 1, 4);
-        board = board.move_piece(4, 6, 4, 4);
-        board = board.move_piece(3, 1, 3, 3);
-        board = board.move_piece(5, 7, 1, 3);
-        board.print_board();
-        println!("{:?}", board.valid_moves(1, 3));
-        println!("{:?}", board.is_check());
-    }
-    #[test]
     fn test_get_color() {
         let board = Board::new();
         let (x, y) = input();
@@ -383,12 +292,12 @@ mod tests {
         println!("{:?}", board.tiles[y][x]);
     }
     #[test]
-    fn test_legal_moves() {
+    fn test_new_moves() {
         let mut board = Board::new();
-        board = board.move_piece(4, 6, 4, 4);
-        board = board.move_piece(4, 1, 4, 3);
-        board = board.move_piece(5, 7, 1, 3);
+        board = board.new_move_piece(4, 6, 4, 4);
+        board = board.new_move_piece(4, 1, 4, 3);
+        board = board.new_move_piece(5, 7, 1, 3);
+        board = board.new_move_piece(0, 6, 0, 4);
         board.print_board();
-        println!("{:?}", board.legal_moves(2, 1));
     }
 }
