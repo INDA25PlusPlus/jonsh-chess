@@ -2,12 +2,12 @@ use crate::board::{Board, Tile};
 use crate::pieces::{Color, Piece};
 
 impl Board {
-    pub fn new_move_piece(mut self, fx: usize, fy: usize, tx: usize, ty: usize) -> Self {
+    pub fn move_piece(&mut self, fx: usize, fy: usize, tx: usize, ty: usize) {
         let selected_piece = self.tiles[fy][fx];
         if let Tile::Occupied(color, _) = self.tiles[fy][fx]
             && color == self.turn
         {
-            if self.valid_moves(fx, fy).contains(&(tx, ty)) {
+            if self.legal_moves(fx, fy).contains(&(tx, ty)) {
                 self.tiles[ty][tx] = selected_piece;
                 self.tiles[fy][fx] = Tile::Empty;
                 if self.turn == Color::White {
@@ -15,13 +15,19 @@ impl Board {
                 } else {
                     self.turn = Color::White;
                 }
+                if let Tile::Occupied(color, Piece::King) = selected_piece {
+                    if color == Color::White {
+                        self.white_king_pos = (tx, ty);
+                    } else {
+                        self.black_king_pos = (tx, ty);
+                    }
+                }
             }
         }
-        return self;
     }
 
     //Get Color of Piece. Return True for white and False for black.
-    pub fn get_color(self, x: usize, y: usize) -> bool {
+    pub fn get_color(&self, x: usize, y: usize) -> bool {
         if let Tile::Occupied(Color::White, _) = self.tiles[y][x] {
             return true;
         } else if let Tile::Occupied(Color::Black, _) = self.tiles[y][x] {
@@ -33,36 +39,44 @@ impl Board {
     pub fn legal_moves(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
         let mut moves = Vec::new();
 
-        let schrödinger_moves = self.valid_moves(x, y);
+        let fake_moves = self.valid_moves(x, y);
 
-        if let Tile::Occupied(color, _) = self.tiles[y][x] {
-            for (nx, ny) in schrödinger_moves {
+        if let Tile::Occupied(color, piece) = self.tiles[y][x] {
+            for (nx, ny) in fake_moves {
                 let mut new_board = self.clone();
                 let selected_piece = new_board.tiles[y][x];
                 new_board.tiles[ny][nx] = selected_piece;
                 new_board.tiles[y][x] = Tile::Empty;
+
+                if let Piece::King = piece {
+                    if color == Color::White {
+                        new_board.white_king_pos = (nx, ny);
+                    } else {
+                        new_board.black_king_pos = (nx, ny);
+                    }
+                }
+
                 let (is_check, white) = new_board.is_check();
 
                 if is_check
                     && ((color == Color::White && white) || (color == Color::Black && !white))
                 {
                     continue;
+                } else {
+                    moves.push((nx, ny));
                 }
-
-                moves.push((nx, ny));
             }
         }
-        moves
+        return moves;
     }
     //Get valid moves
-    pub fn valid_moves(self, x: usize, y: usize) -> Vec<(usize, usize)> {
+    pub fn valid_moves(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
         let selected_piece = self.tiles[y][x];
         let mut valid_moves: Vec<(usize, usize)> = Vec::new();
-        let piece_color = self.get_color(x, y);
         let i: isize;
         //Pawn
-        if let Tile::Occupied(_, Piece::Pawn) = selected_piece {
-            if piece_color {
+        if let Tile::Occupied(color, Piece::Pawn) = selected_piece {
+            if color == Color::White {
                 i = -1;
             } else {
                 i = 1;
@@ -71,7 +85,7 @@ impl Board {
                 if let Tile::Empty = self.tiles[(y as isize + i) as usize][x] {
                     valid_moves.push((x, (y as isize + i) as usize));
                     if let Tile::Empty = self.tiles[(y as isize + i * 2) as usize][x]
-                        && ((y == 6 && piece_color) || (y == 1 && !piece_color))
+                        && ((y == 6 && color == Color::White) || (y == 1 && color == Color::Black))
                     {
                         valid_moves.push((x, (y as isize + 2 * i) as usize));
                     }
@@ -220,24 +234,17 @@ impl Board {
         return valid_moves;
     }
     //Is king in check
-    pub fn is_check(self) -> (bool, bool) {
+    pub fn is_check(&self) -> (bool, bool) {
         let mut value = (false, false);
         for iy in 0..8 {
             for ix in 0..8 {
-                if let Tile::Occupied(color, _) = self.tiles[iy][ix]
-                    && color == Color::Black
-                {
-                    for (ax, ay) in self.valid_moves(ix, iy) {
-                        if (ax, ay) == self.white_king_pos {
-                            value = (true, true)
-                        }
-                    }
-                } else if let Tile::Occupied(color, _) = self.tiles[iy][ix]
-                    && color == Color::White
-                {
-                    for (ax, ay) in self.valid_moves(ix, iy) {
-                        if (ax, ay) == self.black_king_pos {
-                            value = (true, false)
+                if let Tile::Occupied(color, _) = self.tiles[iy][ix] {
+                    let moves = self.valid_moves(ix, iy);
+                    for (nx, ny) in moves {
+                        if color == Color::Black && (nx, ny) == self.white_king_pos {
+                            value = (true, true);
+                        } else if color == Color::White && (nx, ny) == self.black_king_pos {
+                            value = (true, false);
                         }
                     }
                 }
@@ -245,10 +252,67 @@ impl Board {
         }
         value
     }
+    pub fn game_end(&self) -> (bool, bool, bool) {
+        let (is_check, is_white) = self.is_check();
+        let (mut is_checkmate, mut is_stalemate) = (false, false);
+        if is_check {
+            is_checkmate = true;
+            if is_white {
+                'outer: for iy in 0..8 {
+                    for ix in 0..8 {
+                        if let Tile::Occupied(Color::White, _) = self.tiles[iy][ix] {
+                            if !self.legal_moves(ix, iy).is_empty() {
+                                is_checkmate = false;
+                                break 'outer;
+                            }
+                        }
+                    }
+                }
+            } else {
+                'outer: for iy in 0..8 {
+                    for ix in 0..8 {
+                        if let Tile::Occupied(Color::Black, _) = self.tiles[iy][ix] {
+                            if !self.legal_moves(ix, iy).is_empty() {
+                                is_checkmate = false;
+                                break 'outer;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            is_stalemate = true;
+            if self.turn == Color::White {
+                'outer: for iy in 0..8 {
+                    for ix in 0..8 {
+                        if let Tile::Occupied(Color::White, _) = self.tiles[iy][ix] {
+                            if !self.legal_moves(ix, iy).is_empty() {
+                                is_stalemate = false;
+                                break 'outer;
+                            }
+                        }
+                    }
+                }
+            } else {
+                'outer: for iy in 0..8 {
+                    for ix in 0..8 {
+                        if let Tile::Occupied(Color::Black, _) = self.tiles[iy][ix] {
+                            if !self.legal_moves(ix, iy).is_empty() {
+                                is_stalemate = false;
+                                break 'outer;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return (is_checkmate, is_white, is_stalemate);
+    }
 }
 
 #[cfg(test)]
 mod tests {
+
     use crate::input;
 
     use super::*;
@@ -285,19 +349,25 @@ mod tests {
         }
     }
     #[test]
-    fn test_get_color() {
-        let board = Board::new();
-        let (x, y) = input();
-        println!("{:?}", board.get_color(x, y));
-        println!("{:?}", board.tiles[y][x]);
-    }
-    #[test]
     fn test_new_moves() {
         let mut board = Board::new();
-        board = board.new_move_piece(4, 6, 4, 4);
-        board = board.new_move_piece(4, 1, 4, 3);
-        board = board.new_move_piece(5, 7, 1, 3);
-        board = board.new_move_piece(0, 6, 0, 4);
+        board.move_piece(4, 6, 4, 4);
+        board.move_piece(4, 1, 4, 3);
+        board.move_piece(5, 7, 1, 3);
+        board.move_piece(0, 6, 0, 4);
         board.print_board();
+    }
+    #[test]
+    fn test_game_end() {
+        let mut board = Board::new();
+        board.move_piece(5, 6, 5, 5);
+        board.move_piece(4, 1, 4, 3);
+        board.move_piece(6, 6, 6, 4);
+        board.move_piece(3, 0, 7, 4);
+        board.print_board();
+
+        println!("{:?}", board.valid_moves(3, 0));
+        println!("{:?}", board.is_check());
+        println!("{:?}", board.game_end());
     }
 }
