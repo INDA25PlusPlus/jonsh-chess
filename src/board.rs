@@ -8,6 +8,19 @@ pub enum Tile {
 #[derive(Clone, Copy, Debug)]
 pub struct Board {
     pub tiles: [[Tile; 8]; 8],
+    pub black_king_pos: (usize, usize),
+    pub white_king_pos: (usize, usize),
+    pub turn: bool,
+}
+
+impl Tile {
+    pub fn color(&self) -> Option<Color> {
+        if let Tile::Occupied(color, _) = self {
+            Some(*color)
+        } else {
+            None
+        }
+    }
 }
 
 impl Board {
@@ -38,12 +51,20 @@ impl Board {
         ];
         (tiles[0], tiles[1], tiles[7], tiles[6]) =
             (black_back_rank, black_pawns, white_back_rank, white_pawns);
-        Board { tiles }
+        Board {
+            tiles,
+            black_king_pos: (4, 0),
+            white_king_pos: (4, 7),
+            turn: true,
+        }
     }
     pub fn print_board(self) {
         for i in 0..8 {
             println!("{:?}", self.tiles[i]);
         }
+    }
+    pub fn in_bounds(x: isize, y: isize) -> bool {
+        (0..8).contains(&x) && (0..8).contains(&y)
     }
 }
 

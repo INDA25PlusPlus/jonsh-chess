@@ -22,5 +22,3 @@ pub fn translate(m: &str) -> (usize, usize) {
     let y: usize = 8 - y;
     return (x as usize, y);
 }
-
-// [y][x]
