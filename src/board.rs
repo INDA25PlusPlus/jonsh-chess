@@ -11,6 +11,9 @@ pub struct Board {
     pub black_king_pos: (usize, usize),
     pub white_king_pos: (usize, usize),
     pub turn: Color,
+    pub en_passant_target: Option<(usize, usize)>,
+    pub white_castle: bool,
+    pub black_castel: bool,
 }
 
 impl Tile {
@@ -56,6 +59,9 @@ impl Board {
             black_king_pos: (4, 0),
             white_king_pos: (4, 7),
             turn: Color::White,
+            en_passant_target: None,
+            white_castle: true,
+            black_castel: true,
         }
     }
     pub fn print_board(self) {
