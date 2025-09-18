@@ -90,9 +90,41 @@ impl Board {
         }
         return self;
     }
+    pub fn get_color(self, x: usize, y: usize) -> bool {
+        if let Tile::Occupied(Color::White, _) = self.tiles[y][x] {
+            return true;
+        } else if let Tile::Occupied(Color::Black, _) = self.tiles[y][x] {
+            return false;
+        } else {
+            unimplemented!();
+        }
+    }
+    // pub fn get_all_opposite_moves(self, color: Tile) -> Vec<(usize, usize)> {
+    //     let mut moves: Vec<(usize, usize)> = Vec::new();
+    //     if let Tile::Occupied(Color::White, _) = color {
+    //         for i in self.get_piece_pos() {
+
+    //         }
+    //     } else if let Tile::Occupied(Color::Black, _) = color {
+    //         unimplemented!();
+    //     }
+    //     return moves;
+    // }
+    pub fn get_piece_pos(self) -> Vec<(usize, usize)> {
+        let mut pos: Vec<(usize, usize)> = Vec::new();
+        for i_1 in 0..=7 {
+            for i_2 in 0..=7 {
+                if let Tile::Occupied(_, _) = self.tiles[i_1][i_2] {
+                    pos.push((i_2, i_1));
+                }
+            }
+        }
+        return pos;
+    }
     pub fn valid_moves(self, x: usize, y: usize) -> Vec<(usize, usize)> {
         let selected_piece = self.tiles[y][x];
         let mut valid_moves: Vec<(usize, usize)> = Vec::new();
+        let piece_color = self.get_color(x, y);
 
         //Pawn
         if let Tile::Occupied(_, Piece::Pawn) = selected_piece {
@@ -146,11 +178,13 @@ impl Board {
         }
         //##################################################################################
         //Bishop
-        else if let Tile::Occupied(_, Piece::Bishop) = selected_piece {
+        else if let Tile::Occupied(color, Piece::Bishop) = selected_piece {
             //Diagonal Down-Right
             for i_1 in 1isize..=(7 - y).min(7 - x) as isize {
-                if let Tile::Empty =
-                    self.tiles[(y as isize + i_1) as usize][(x as isize + i_1) as usize]
+                if matches!(
+                    self.tiles[(y as isize + i_1) as usize][(x as isize + i_1) as usize],
+                    Tile::Empty
+                ) || matches!(self.tiles[(y as isize + i_1) as usize][(x as isize + i_1) as usize], Tile::Occupied(other_color, _) if other_color != color)
                 {
                     valid_moves.push(((y as isize + i_1) as usize, (x as isize + i_1) as usize));
                 } else {
@@ -159,8 +193,10 @@ impl Board {
             }
             //Diagonal Down-Left
             for i_2 in 1isize..=(7 - y).min(x) as isize {
-                if let Tile::Empty =
-                    self.tiles[(y as isize + i_2) as usize][(x as isize - i_2) as usize]
+                if matches!(
+                    self.tiles[(y as isize + i_2) as usize][(x as isize - i_2) as usize],
+                    Tile::Empty
+                ) || matches!(self.tiles[(y as isize + i_2) as usize][(x as isize - i_2) as usize], Tile::Occupied(other_color, _) if other_color != color)
                 {
                     valid_moves.push(((y as isize + i_2) as usize, (x as isize - i_2) as usize));
                 } else {
@@ -169,8 +205,10 @@ impl Board {
             }
             //Diagonal Upp-Right
             for i_3 in 1isize..=(y).min(7 - x) as isize {
-                if let Tile::Empty =
-                    self.tiles[(y as isize - i_3) as usize][(x as isize + i_3) as usize]
+                if matches!(
+                    self.tiles[(y as isize - i_3) as usize][(x as isize + i_3) as usize],
+                    Tile::Empty
+                ) || matches!(self.tiles[(y as isize - i_3) as usize][(x as isize + i_3) as usize], Tile::Occupied(other_color, _) if other_color != color)
                 {
                     valid_moves.push(((y as isize - i_3) as usize, (x as isize + i_3) as usize));
                 } else {
@@ -179,8 +217,10 @@ impl Board {
             }
             //Diagonal Upp-Left
             for i_4 in 1isize..=y.min(x) as isize {
-                if let Tile::Empty =
-                    self.tiles[(y as isize - i_4) as usize][(x as isize - i_4) as usize]
+                if matches!(
+                    self.tiles[(y as isize - i_4) as usize][(x as isize - i_4) as usize],
+                    Tile::Empty
+                ) || matches!(self.tiles[(y as isize - i_4) as usize][(x as isize - i_4) as usize], Tile::Occupied(other_color, _) if other_color != color)
                 {
                     valid_moves.push(((y as isize - i_4) as usize, (x as isize - i_4) as usize));
                 } else {
@@ -190,10 +230,12 @@ impl Board {
         }
         //##################################################################################
         //Rook
-        else if let Tile::Occupied(_, Piece::Rook) = selected_piece {
+        else if let Tile::Occupied(color, Piece::Rook) = selected_piece {
             //Right
             for i_1 in 1isize..=7 - x as isize {
-                if let Tile::Empty = self.tiles[y][(x as isize + i_1) as usize] {
+                if matches!(self.tiles[y][(x as isize + i_1) as usize], Tile::Empty)
+                    || matches!(self.tiles[y][(x as isize + i_1) as usize], Tile::Occupied(other_color, _) if other_color != color)
+                {
                     valid_moves.push((y, (x as isize + i_1) as usize));
                 } else {
                     break;
@@ -201,7 +243,9 @@ impl Board {
             }
             //Left
             for i_2 in 1isize..=x as isize {
-                if let Tile::Empty = self.tiles[y][(x as isize - i_2) as usize] {
+                if matches!(self.tiles[y][(x as isize - i_2) as usize], Tile::Empty)
+                    || matches!(self.tiles[y][(x as isize - i_2) as usize], Tile::Occupied(other_color, _) if other_color != color)
+                {
                     valid_moves.push((y, (x as isize - i_2) as usize));
                 } else {
                     break;
@@ -209,7 +253,9 @@ impl Board {
             }
             //Down
             for i_3 in 1isize..=7 - y as isize {
-                if let Tile::Empty = self.tiles[(y as isize + i_3) as usize][x] {
+                if matches!(self.tiles[(y as isize + i_3) as usize][x], Tile::Empty)
+                    || matches!(self.tiles[(y as isize + i_3) as usize][x], Tile::Occupied(other_color, _) if other_color != color)
+                {
                     valid_moves.push(((y as isize + i_3) as usize, x));
                 } else {
                     break;
@@ -217,7 +263,9 @@ impl Board {
             }
             //Upp
             for i_4 in 1isize..=y as isize {
-                if let Tile::Empty = self.tiles[(y as isize - i_4) as usize][x] {
+                if matches!(self.tiles[(y as isize - i_4) as usize][x], Tile::Empty)
+                    || matches!(self.tiles[(y as isize - i_4) as usize][x], Tile::Occupied(other_color, _) if other_color != color)
+                {
                     valid_moves.push(((y as isize - i_4) as usize, x));
                 } else {
                     break;
@@ -302,11 +350,13 @@ impl Board {
         }
         //##################################################################################
         //King
-        else if let Tile::Occupied(_, Piece::King) = selected_piece {
+        else if let Tile::Occupied(color, Piece::King) = selected_piece {
             for i_1 in [1.min(7 - y as isize), (-1).max(0 - y as isize), 0 as isize] {
                 for i_2 in [1.min(7 - x as isize), (-1).max(0 - x as isize), 0 as isize] {
-                    if let Tile::Empty =
-                        self.tiles[(y as isize + i_1) as usize][(x as isize + i_2) as usize]
+                    if matches!(
+                        self.tiles[(y as isize + i_1) as usize][(x as isize + i_2) as usize],
+                        Tile::Empty
+                    ) || matches!(self.tiles[(y as isize + i_1) as usize][(x as isize + i_2) as usize], Tile::Occupied(other_color, _) if other_color != color)
                     {
                         valid_moves
                             .push(((y as isize + i_1) as usize, (x as isize + i_2) as usize));
@@ -316,6 +366,35 @@ impl Board {
         }
         return valid_moves;
     }
+    pub fn is_check(self) -> (bool, bool) {
+        let mut value: (bool, bool) = (false, false);
+        let mut black_king_pos: (usize, usize) = (0, 0);
+        let mut white_king_pos: (usize, usize) = (0, 0);
+        //King pos
+        for i_1 in 0..=7 {
+            for i_2 in 0..=7 {
+                if let Tile::Occupied(Color::Black, Piece::King) = self.tiles[i_2][i_1] {
+                    black_king_pos = (i_2, i_1);
+                }
+                if let Tile::Occupied(Color::White, Piece::King) = self.tiles[i_2][i_1] {
+                    white_king_pos = (i_2, i_1);
+                }
+            }
+        }
+        for j_1 in 0..=7 {
+            for j_2 in 0..=7 {
+                if let Tile::Occupied(Color::White, _) = self.tiles[j_2][j_1] {
+                    for k in self.valid_moves(j_1, j_2) {
+                        if k == black_king_pos {
+                            value = (true, false);
+                        }
+                    }
+                }
+            }
+        }
+        println!("{:?}", self.valid_moves(1, 3));
+        return value;
+    }
 }
 
 #[cfg(test)]
@@ -323,6 +402,7 @@ mod tests {
     use std::usize;
 
     use crate::input;
+    use crate::translate;
 
     use super::*;
     #[test]
@@ -379,4 +459,38 @@ mod tests {
             }
         }
     }
+    #[test]
+    fn test_get_pos() {
+        let board = Board::new();
+        println!("{:?}", board.get_piece_pos());
+    }
+    #[test]
+    fn test_get_check() {
+        let mut board = Board::new();
+        board = board.move_piece(3, 6, 3, 4);
+        board = board.move_piece(4, 1, 4, 3);
+        board = board.move_piece(6, 7, 5, 5);
+        board = board.move_piece(5, 0, 1, 4);
+        board.print_board();
+        println!("{:?}", board.valid_moves(1, 4));
+        println!("{:?}", board.is_check());
+    }
+    #[test]
+    fn test_get_color() {
+        let mut board = Board::new();
+        let (x, y) = input();
+        println!("{:?}", board.get_color(x, y));
+        println!("{:?}", board.tiles[y][x]);
+    }
+    // #[test]
+    // fn test_legal_moves() {
+    //     let board = Board::new();
+    //     println!("{:?}", board.valid_moves(3, 1))
+    // }
+    // #[test]
+    // fn test_get_color() {
+    //     let board = Board::new();
+    //     let (x, y) = input();
+    //     let piece = boar
+    // }
 }

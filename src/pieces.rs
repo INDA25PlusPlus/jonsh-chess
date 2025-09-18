@@ -7,7 +7,7 @@ pub enum Piece {
     Queen,
     King,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Color {
     White,
     Black,

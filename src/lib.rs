@@ -14,5 +14,13 @@ pub fn input() -> (usize, usize) {
     let y: usize = 8 - y;
     return (x as usize, y);
 }
+pub fn translate(m: &str) -> (usize, usize) {
+    let m: Vec<_> = m.chars().collect();
+    let x = m[0];
+    let y = m[1] as usize;
+    let x: u32 = x.to_digit(18).unwrap() - 10;
+    let y: usize = 8 - y;
+    return (x as usize, y);
+}
 
 // [y][x]
