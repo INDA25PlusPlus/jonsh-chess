@@ -10,7 +10,7 @@ pub struct Board {
     pub tiles: [[Tile; 8]; 8],
     pub black_king_pos: (usize, usize),
     pub white_king_pos: (usize, usize),
-    pub turn: bool,
+    pub turn: Color,
 }
 
 impl Tile {
@@ -55,7 +55,7 @@ impl Board {
             tiles,
             black_king_pos: (4, 0),
             white_king_pos: (4, 7),
-            turn: true,
+            turn: Color::White,
         }
     }
     pub fn print_board(self) {
