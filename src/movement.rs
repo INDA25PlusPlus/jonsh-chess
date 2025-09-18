@@ -76,6 +76,9 @@ impl Board {
         }
         return self;
     }
+
+    //         pub fn new_move_piece(self, fx: usize, fy: usize, tx: usize, ty: usize) -> Self {}
+
     //Get Color of Piece. Return True for white and False for black.
     pub fn get_color(self, x: usize, y: usize) -> bool {
         if let Tile::Occupied(Color::White, _) = self.tiles[y][x] {
@@ -85,6 +88,30 @@ impl Board {
         } else {
             unimplemented!();
         }
+    }
+    pub fn legal_moves(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
+        let mut moves = Vec::new();
+
+        let schrödinger_moves = self.valid_moves(x, y);
+
+        if let Tile::Occupied(color, _) = self.tiles[y][x] {
+            for (nx, ny) in schrödinger_moves {
+                let mut new_board = self.clone();
+                let selected_piece = new_board.tiles[y][x];
+                new_board.tiles[ny][nx] = selected_piece;
+                new_board.tiles[y][x] = Tile::Empty;
+                let (is_check, white) = new_board.is_check();
+
+                if is_check
+                    && ((color == Color::White && white) || (color == Color::Black && !white))
+                {
+                    continue;
+                }
+
+                moves.push((nx, ny));
+            }
+        }
+        moves
     }
     //Get valid moves
     pub fn valid_moves(self, x: usize, y: usize) -> Vec<(usize, usize)> {
@@ -354,5 +381,14 @@ mod tests {
         let (x, y) = input();
         println!("{:?}", board.get_color(x, y));
         println!("{:?}", board.tiles[y][x]);
+    }
+    #[test]
+    fn test_legal_moves() {
+        let mut board = Board::new();
+        board = board.move_piece(4, 6, 4, 4);
+        board = board.move_piece(4, 1, 4, 3);
+        board = board.move_piece(5, 7, 1, 3);
+        board.print_board();
+        println!("{:?}", board.legal_moves(2, 1));
     }
 }
