@@ -11,7 +11,8 @@ impl Board {
                 self.tiles[ty][tx] = selected_piece;
                 self.tiles[fy][fx] = Tile::Empty;
 
-                if let Tile::Occupied(color, Piece::Pawn) = selected_piece {
+                //Pawn Stuff
+                if let Piece::Pawn = piece {
                     if let Some((ex, ey)) = self.en_passant_target {
                         if (tx, ty) == (ex, ey) {
                             if color == Color::White {
@@ -21,8 +22,6 @@ impl Board {
                             }
                         }
                     }
-                }
-                if let Piece::Pawn = piece {
                     if color == Color::White && fy == 6 && ty == 4 {
                         self.en_passant_target = Some((fx, 5));
                     } else if color == Color::Black && fy == 1 && ty == 3 {
@@ -30,27 +29,34 @@ impl Board {
                     } else {
                         self.en_passant_target = None;
                     }
+                    if ty == 0 || ty == 7 {
+                        self.tiles[ty][tx] = Tile::Occupied(color, Piece::Queen);
+                    }
                 } else {
                     self.en_passant_target = None;
                 }
 
-                if let Piece::Pawn = piece
-                    && (ty == 0 || ty == 7)
-                {
-                    self.tiles[ty][tx] = Tile::Occupied(color, Piece::Queen);
-                }
-
+                //Change Turn
                 if self.turn == Color::White {
                     self.turn = Color::Black;
                 } else {
                     self.turn = Color::White;
                 }
-
+                //Update King Pos and change castle ability
                 if let Tile::Occupied(color, Piece::King) = selected_piece {
                     if color == Color::White {
                         self.white_king_pos = (tx, ty);
+                        self.white_castle = false;
                     } else {
                         self.black_king_pos = (tx, ty);
+                        self.black_castel = false;
+                    }
+                }
+                if let Tile::Occupied(color, Piece::Rook) = selected_piece {
+                    if color == Color::White {
+                        self.white_castle = false;
+                    } else {
+                        self.black_castel = false;
                     }
                 }
             }
@@ -353,6 +359,7 @@ impl Board {
 mod tests {
 
     use crate::input;
+    use std::time::Instant;
 
     use super::*;
     #[test]
@@ -398,15 +405,18 @@ mod tests {
     }
     #[test]
     fn test_game_end() {
+        let now = Instant::now();
         let mut board = Board::new();
         board.move_piece(5, 6, 5, 5);
         board.move_piece(4, 1, 4, 3);
         board.move_piece(6, 6, 6, 4);
         board.move_piece(3, 0, 7, 4);
+        let elapsed = now.elapsed();
         board.print_board();
 
         println!("{:?}", board.valid_moves(3, 0));
         println!("{:?}", board.is_check());
         println!("{:?}", board.game_end());
+        println!("Elapsed: {:.2?}", elapsed);
     }
 }
